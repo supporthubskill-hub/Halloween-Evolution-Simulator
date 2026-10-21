@@ -12,6 +12,8 @@ attack.Parent = ReplicatedStorage
 local COOLDOWN, RANGE, DAMAGE, SAFE_RADIUS = 0.65, 13, 15, 50
 local lastAttack = {}
 local lastDamager = {}
+local lastPetAbility = {}
+local PET_ABILITY_COOLDOWN = 8
 local grantItem = script.Parent:WaitForChild("GrantInventoryItem")
 local awardPetXP = script.Parent:WaitForChild("AwardPetXP")
 
@@ -79,10 +81,23 @@ attack.OnServerEvent:Connect(function(player)
     end
     if not nearest then return end
     damageMonster(player, nearest, DAMAGE)
+    -- Same power at equal stage, regardless of pet rarity or VIP.
+    local pet = player:GetAttribute("EquippedPetTemplate")
+    local petId = player:GetAttribute("EquippedPetId")
+    local stage = math.clamp(tonumber(player:GetAttribute("EquippedPetStage")) or 1, 1, 8)
+    if typeof(petId) == "string" and (pet == "MoonFox" or pet == "PumpkinBat")
+        and now - (lastPetAbility[player] or -math.huge) >= PET_ABILITY_COOLDOWN then
+        lastPetAbility[player] = now
+        damageMonster(player, nearest, 2 + stage * 2)
+        player:SetAttribute("LastPetAbility", pet == "MoonFox" and "Luz Lunar" or "Eco Calabaza")
+    end
     local allyName = player:GetAttribute("EquippedAlly")
     if typeof(allyName) == "string" and companions:FindFirstChild(tostring(player.UserId) .. "_" .. allyName) then
         -- Ally helps only when player attacks; same damage regardless of VIP status.
         damageMonster(player, nearest, 5)
     end
 end)
-Players.PlayerRemoving:Connect(function(player) lastAttack[player] = nil end)
+Players.PlayerRemoving:Connect(function(player)
+    lastAttack[player] = nil
+    lastPetAbility[player] = nil
+end)
