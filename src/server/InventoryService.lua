@@ -11,6 +11,7 @@ function InventoryService.NewItem(itemType, templateId, level)
         Type = itemType,
         TemplateId = templateId,
         Level = math.clamp(math.floor(level or 1), 1, 1000),
+        XP = 0,
         Locked = false,
         Equipped = false,
         Tradable = true,
@@ -29,6 +30,7 @@ function InventoryService.Sanitize(items)
             table.insert(clean, {
                 Id=item.Id, Type=item.Type, TemplateId=item.TemplateId,
                 Level=math.clamp(math.floor(tonumber(item.Level) or 1), 1, 1000),
+                XP=math.clamp(math.floor(tonumber(item.XP) or 0), 0, 2000000000),
                 Locked=item.Locked == true,
                 Equipped=item.Equipped == true,
                 Tradable=item.Tradable ~= false,
