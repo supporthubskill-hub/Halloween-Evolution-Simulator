@@ -63,6 +63,7 @@ local function spawnMonster(def)
     humanoid.Died:Connect(function()
         states[model] = nil
         task.delay(5, function() if model.Parent then model:Destroy() end end)
+        task.delay(20, function() if folder.Parent then spawnMonster(def) end end)
     end)
 end
 
