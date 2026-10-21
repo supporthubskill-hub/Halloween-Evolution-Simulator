@@ -134,10 +134,10 @@ local function loadPlayer(player)
         end
     end
     player:SetAttribute("Candy", typeof(data) == "table" and clampInteger(data.Candy, 0, 2000000000, 0) or 0)
-    for _, id in ipairs({"WELCOME", "PUMPKINS", "CEMETERY"}) do
+    for _, id in ipairs({"WELCOME", "PUMPKINS", "CEMETERY", "SOUL_ENTRY", "SOUL_HUNTER", "SOUL_BOSS"}) do
         local quests = typeof(data) == "table" and data.Quests or nil
         local saved = typeof(quests) == "table" and quests[id] or nil
-        player:SetAttribute("Quest_" .. id, clampInteger(saved, 0, id == "PUMPKINS" and 5 or 1, 0))
+        player:SetAttribute("Quest_" .. id, clampInteger(saved, 0, (id == "PUMPKINS" or id == "SOUL_HUNTER") and 5 or 1, 0))
     end
     loaded[player] = true
     local equippedPet
@@ -176,6 +176,9 @@ local function savePlayer(player)
             WELCOME = player:GetAttribute("Quest_WELCOME") or 0,
             PUMPKINS = player:GetAttribute("Quest_PUMPKINS") or 0,
             CEMETERY = player:GetAttribute("Quest_CEMETERY") or 0,
+            SOUL_ENTRY = player:GetAttribute("Quest_SOUL_ENTRY") or 0,
+            SOUL_HUNTER = player:GetAttribute("Quest_SOUL_HUNTER") or 0,
+            SOUL_BOSS = player:GetAttribute("Quest_SOUL_BOSS") or 0,
         },
     }
     local ok, err = pcall(function()
