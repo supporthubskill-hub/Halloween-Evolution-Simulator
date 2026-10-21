@@ -34,6 +34,13 @@ local function award(player, monster)
         grantItem:Fire(player, "Material", "SoulShard")
     end
     awardPetXP:Fire(player, 25)
+    if monster:GetAttribute("Zone") == "SoulForest" then
+        local progress = script.Parent:FindFirstChild("QuestProgress")
+        if progress then
+            progress:Fire(player, "SOUL_HUNTER", 1)
+            if monster.Name == "Guardián de las Almas" then progress:Fire(player, "SOUL_BOSS", 1) end
+        end
+    end
     local allyName = player:GetAttribute("EquippedAlly")
     if typeof(allyName) == "string" then
         local allyLevel = player:GetAttribute("AllyLevel") or 1
