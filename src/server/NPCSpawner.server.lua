@@ -79,6 +79,10 @@ for _, info in ipairs(entries) do
     local messageIndex = 0
     prompt.Triggered:Connect(function(player)
         messageIndex = (messageIndex % #info.Lines) + 1
+        if info.Name == "Luna" then
+            local questProgress = script.Parent:FindFirstChild("QuestProgress")
+            if questProgress then questProgress:Fire(player, "WELCOME", 1) end
+        end
         -- Dialogue shown locally to the triggering player through a RemoteEvent.
         local replicated = game:GetService("ReplicatedStorage")
         local event = replicated:FindFirstChild("NPCDialogue")
