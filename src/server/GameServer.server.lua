@@ -5,6 +5,7 @@ local store = DataStoreService:GetDataStore("HalloweenEvolution_PlayerProgress_v
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MAX_LEVEL = 1000
 local InventoryService = require(script.Parent:WaitForChild("InventoryService"))
+local PetConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("PetConfig"))
 local inventories = {}
 local loaded = {}
 -- Only trusted server scripts can request inventory grants.
@@ -32,6 +33,19 @@ inventoryRequest.OnServerInvoke = function(player)
     if not loaded[player] then return {Ready=false, Items={}} end
     return {Ready=true, Items=InventoryService.Sanitize(inventories[player])}
 end
+local petXPEvent = Instance.new("BindableEvent")
+petXPEvent.Name = "AwardPetXP"
+petXPEvent.Parent = script.Parent
+petXPEvent.Event:Connect(function(player, amount)
+    if not loaded[player] or typeof(amount) ~= "number" or amount < 1 or amount > 1000 then return end
+    local id = player:GetAttribute("EquippedPetId")
+    if typeof(id) ~= "string" then return end
+    local item = InventoryService.Find(inventories[player], id)
+    if not item or item.Type ~= "Pet" or not item.Equipped then return end
+    item.Level, item.XP = PetConfig.AddXP(item.Level, item.XP or 0, amount)
+    player:SetAttribute("EquippedPetLevel", item.Level)
+    player:SetAttribute("EquippedPetStage", PetConfig.GetStage(item.Level))
+end)
 -- Equipment changes are validated against the server-owned inventory.
 local equipRequest = Instance.new("RemoteFunction")
 equipRequest.Name = "EquipPet"
@@ -58,6 +72,8 @@ equipRequest.OnServerInvoke = function(player, itemId)
     item.Equipped = shouldEquip
     player:SetAttribute("EquippedPetId", shouldEquip and item.Id or nil)
     player:SetAttribute("EquippedPetTemplate", shouldEquip and item.TemplateId or nil)
+    player:SetAttribute("EquippedPetLevel", shouldEquip and item.Level or nil)
+    player:SetAttribute("EquippedPetStage", shouldEquip and PetConfig.GetStage(item.Level) or nil)
     return {Success=true, Items=InventoryService.Sanitize(inventory)}
 end
 -- Lock/unlock owned items; equipped items cannot be locked.
@@ -127,6 +143,8 @@ local function loadPlayer(player)
     if equippedPet then
         player:SetAttribute("EquippedPetId", equippedPet.Id)
         player:SetAttribute("EquippedPetTemplate", equippedPet.TemplateId)
+        player:SetAttribute("EquippedPetLevel", equippedPet.Level)
+        player:SetAttribute("EquippedPetStage", PetConfig.GetStage(equippedPet.Level))
     end
     player:SetAttribute("ProgressReady", true)
 end
