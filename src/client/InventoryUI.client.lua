@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local request = ReplicatedStorage:WaitForChild("GetInventory")
 local equipPet = ReplicatedStorage:WaitForChild("EquipPet")
+local lockItem = ReplicatedStorage:WaitForChild("SetItemLocked")
 local gui = Instance.new("ScreenGui")
 gui.Name = "InventoryGui"
 gui.ResetOnSpawn = false
@@ -74,27 +75,40 @@ layout.Padding = UDim.new(0,7)
 layout.Parent = list
 local function render()
     for _, child in list:GetChildren() do
-        if child:IsA("TextLabel") or child:IsA("TextButton") then child:Destroy() end
+        if child:IsA("Frame") or child:IsA("TextLabel") then child:Destroy() end
     end
     local shown = 0
     for _, item in ipairs(items) do
         if currentCategory == "Todos" or item.Type == currentCategory then
             shown += 1
-            local entry = Instance.new(item.Type == "Pet" and "TextButton" or "TextLabel")
+            local entry = Instance.new("Frame")
             entry.Name = "Item"
             entry.Size = UDim2.new(1,-6,0,54)
             entry.BackgroundColor3 = Color3.fromRGB(69,45,91)
-            entry.TextColor3 = Color3.fromRGB(255,238,199)
-            entry.TextWrapped = true
-            entry.TextScaled = true
-            entry.Font = Enum.Font.Gotham
-            entry.Text = tostring(item.TemplateId) .. "  |  Nv. " .. tostring(item.Level or 1)
-                .. (item.Locked and "  🔒" or "") .. (item.Equipped and "  ✓" or "")
+            local label = Instance.new("TextLabel")
+            label.BackgroundTransparency = 1
+            label.Size = UDim2.new(0.55,0,1,0)
+            label.TextColor3 = Color3.fromRGB(255,238,199)
+            label.TextWrapped = true
+            label.TextScaled = true
+            label.Font = Enum.Font.Gotham
+            label.Text = tostring(item.TemplateId) .. " Nv." .. tostring(item.Level or 1)
+                .. (item.Locked and " 🔒" or "") .. (item.Equipped and " ✓" or "")
+            label.Parent = entry
             entry.Parent = list
             rounded(entry, 9)
+            local lock = makeButton("Lock", item.Locked and "ABRIR" or "FIJAR", UDim2.new(0.21,0,0,38), UDim2.new(0.77,0,0,8), entry)
+            lock.TextScaled = true
+            lock.Activated:Connect(function()
+                local ok, response = pcall(function() return lockItem:InvokeServer(item.Id, not item.Locked) end)
+                if ok and typeof(response) == "table" and response.Success then
+                    items = response.Items or {}
+                    render()
+                end
+            end)
             if item.Type == "Pet" then
-                entry.Text = entry.Text .. (item.Equipped and "  [QUITAR]" or "  [EQUIPAR]")
-                entry.Activated:Connect(function()
+                local equip = makeButton("Equip", item.Equipped and "QUITAR" or "EQUIPAR", UDim2.new(0.21,0,0,38), UDim2.new(0.55,0,0,8), entry)
+                equip.Activated:Connect(function()
                     local ok, response = pcall(function() return equipPet:InvokeServer(item.Id) end)
                     if ok and typeof(response) == "table" and response.Success then
                         items = response.Items or {}
