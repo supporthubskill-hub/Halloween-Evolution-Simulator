@@ -3,6 +3,8 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 local store = DataStoreService:GetDataStore("HalloweenEvolution_PlayerProgress_v1")
 local MAX_LEVEL = 1000
+local InventoryService = require(script.Parent:WaitForChild("InventoryService"))
+local inventories = {}
 local loaded = {}
 local function clampInteger(value, min, max, fallback)
     if typeof(value) ~= "number" or value ~= value then return fallback end
@@ -29,6 +31,7 @@ local function loadPlayer(player)
         player:SetAttribute("ProgressReady", false)
         return -- Never overwrite existing saves when loading failed.
     end
+    inventories[player] = InventoryService.Sanitize(typeof(data) == "table" and data.Inventory or nil)
     if typeof(data) == "table" then
         level.Value = clampInteger(data.Level, 1, MAX_LEVEL, 1)
         xp.Value = clampInteger(data.XP, 0, 2000000000, 0)
@@ -55,6 +58,7 @@ local function savePlayer(player)
         AllyName = allyName,
         AllyLevel = player:GetAttribute("AllyLevel") or 1,
         AllyXP = player:GetAttribute("AllyXP") or 0,
+        Inventory = InventoryService.Sanitize(inventories[player]),
     }
     local ok, err = pcall(function()
         store:UpdateAsync("player_" .. player.UserId, function()
@@ -67,6 +71,7 @@ Players.PlayerAdded:Connect(loadPlayer)
 Players.PlayerRemoving:Connect(function(player)
     savePlayer(player)
     loaded[player] = nil
+    inventories[player] = nil
 end)
 game:BindToClose(function()
     for _, player in Players:GetPlayers() do
