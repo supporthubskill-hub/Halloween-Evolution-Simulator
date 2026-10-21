@@ -36,7 +36,7 @@ local function spawn(def)
     hum.MaxHealth = def.hp
     hum.Health = def.hp
     hum.Parent = model
-    local state = {root=root,hum=hum,origin=def.pos,attacker=nil,angerUntil=0,lastHealth=def.hp,lastHit=0}
+    local state = {damage=def.damage,root=root,hum=hum,origin=def.pos,attacker=nil,angerUntil=0,lastHealth=def.hp,lastHit=0}
     states[model] = state
     hum.HealthChanged:Connect(function(health)
         if health < state.lastHealth and health > 0 then
@@ -73,9 +73,7 @@ RunService.Heartbeat:Connect(function(dt)
                 state.root.Position=Vector3.new(p.X,state.origin.Y,p.Z)
             elseif now-state.lastHit>1.8 then
                 state.lastHit=now
-                hum:TakeDamage(definitions[1].damage)
-                if model.Name=="Árbol Poseído" then hum:TakeDamage(4) end
-                if model.Name=="Guardián de las Almas" then hum:TakeDamage(13) end
+                hum:TakeDamage(state.damage)
             end
         else
             state.attacker=nil
