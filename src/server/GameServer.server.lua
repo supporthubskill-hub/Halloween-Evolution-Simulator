@@ -60,6 +60,25 @@ equipRequest.OnServerInvoke = function(player, itemId)
     player:SetAttribute("EquippedPetTemplate", shouldEquip and item.TemplateId or nil)
     return {Success=true, Items=InventoryService.Sanitize(inventory)}
 end
+-- Lock/unlock owned items; equipped items cannot be locked.
+local lockRequest = Instance.new("RemoteFunction")
+lockRequest.Name = "SetItemLocked"
+lockRequest.Parent = ReplicatedStorage
+lockRequest.OnServerInvoke = function(player, itemId, locked)
+    if not loaded[player] or player:GetAttribute("ProgressReady") ~= true then
+        return {Success=false, Message="Inventario no disponible"}
+    end
+    if typeof(itemId) ~= "string" or #itemId > 100 or typeof(locked) ~= "boolean" then
+        return {Success=false, Message="Solicitud inválida"}
+    end
+    local inventory = inventories[player]
+    if not inventory then return {Success=false, Message="Inventario no disponible"} end
+    local item = InventoryService.Find(inventory, itemId)
+    if not item then return {Success=false, Message="Objeto no encontrado"} end
+    if locked and item.Equipped then return {Success=false, Message="Primero quita el objeto"} end
+    item.Locked = locked
+    return {Success=true, Items=InventoryService.Sanitize(inventory)}
+end
 local function clampInteger(value, min, max, fallback)
     if typeof(value) ~= "number" or value ~= value then return fallback end
     return math.clamp(math.floor(value), min, max)
