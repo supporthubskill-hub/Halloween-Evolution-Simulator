@@ -1,8 +1,9 @@
--- Touch-friendly read-only inventory. Server controls all actual items.
+-- Touch-friendly inventory; server validates pet equipment.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local request = ReplicatedStorage:WaitForChild("GetInventory")
+local equipRequest = ReplicatedStorage:WaitForChild("EquipPet")
 local gui = Instance.new("ScreenGui")
 gui.Name = "InventoryGui"
 gui.ResetOnSpawn = false
@@ -73,13 +74,13 @@ layout.Padding = UDim.new(0,7)
 layout.Parent = list
 local function render()
     for _, child in list:GetChildren() do
-        if child:IsA("TextLabel") then child:Destroy() end
+        if child:IsA("TextLabel") or child:IsA("TextButton") then child:Destroy() end
     end
     local shown = 0
     for _, item in ipairs(items) do
         if currentCategory == "Todos" or item.Type == currentCategory then
             shown += 1
-            local entry = Instance.new("TextLabel")
+            local entry = Instance.new(item.Type == "Pet" and "TextButton" or "TextLabel")
             entry.Name = "Item"
             entry.Size = UDim2.new(1,-6,0,54)
             entry.BackgroundColor3 = Color3.fromRGB(69,45,91)
@@ -91,6 +92,16 @@ local function render()
                 .. (item.Locked and "  🔒" or "") .. (item.Equipped and "  ✓" or "")
             entry.Parent = list
             rounded(entry, 9)
+            if item.Type == "Pet" then
+                entry.Text = entry.Text .. (item.Equipped and "  | QUITAR" or "  | EQUIPAR")
+                entry.Activated:Connect(function()
+                    local ok, result = pcall(function() return equipRequest:InvokeServer(item.Id) end)
+                    if ok and typeof(result) == "table" and result.Success then
+                        items = result.Items
+                        render()
+                    end
+                end)
+            end
         end
     end
     if shown == 0 then
