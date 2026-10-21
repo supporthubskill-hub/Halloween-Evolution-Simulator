@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local request = ReplicatedStorage:WaitForChild("GetInventory")
+local equipPet = ReplicatedStorage:WaitForChild("EquipPet")
 local equipRequest = ReplicatedStorage:WaitForChild("EquipPet")
 local gui = Instance.new("ScreenGui")
 gui.Name = "InventoryGui"
@@ -92,6 +93,16 @@ local function render()
                 .. (item.Locked and "  🔒" or "") .. (item.Equipped and "  ✓" or "")
             entry.Parent = list
             rounded(entry, 9)
+            if item.Type == "Pet" then
+                entry.Text = entry.Text .. (item.Equipped and "  [QUITAR]" or "  [EQUIPAR]")
+                entry.Activated:Connect(function()
+                    local ok, response = pcall(function() return equipPet:InvokeServer(item.Id) end)
+                    if ok and typeof(response) == "table" and response.Success then
+                        items = response.Items or {}
+                        render()
+                    end
+                end)
+            end
             if item.Type == "Pet" then
                 entry.Text = entry.Text .. (item.Equipped and "  | QUITAR" or "  | EQUIPAR")
                 entry.Activated:Connect(function()
