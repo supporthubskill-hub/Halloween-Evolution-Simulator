@@ -19,7 +19,7 @@ local grantItem = script.Parent:WaitForChild("GrantInventoryItem")
 local awardPetXP = script.Parent:WaitForChild("AwardPetXP")
 
 local function award(player, monster)
-    if not player or not player.Parent then return end
+    if not player or not player.Parent or player:GetAttribute("ProgressReady") ~= true then return end
     local stats = player:FindFirstChild("leaderstats")
     local level = stats and stats:FindFirstChild("Level")
     local xp = player:FindFirstChild("XP")
@@ -30,10 +30,13 @@ local function award(player, monster)
     end
     -- One server-generated material reward for every monster defeat.
     grantItem:Fire(player, "Material", "HalloweenEssence")
+    if monster:GetAttribute("Zone") == "SoulForest" then
+        grantItem:Fire(player, "Material", "SoulDust")
+    end
     if monster.Name == "Guardián de las Almas" then
         grantItem:Fire(player, "Material", "SoulShard")
     end
-    awardPetXP:Fire(player, 25)
+    awardPetXP:Fire(player, monster.Name == "Guardián de las Almas" and 250 or (monster:GetAttribute("Zone") == "SoulForest" and 65 or 25))
     if monster:GetAttribute("Zone") == "SoulForest" then
         local progress = script.Parent:FindFirstChild("QuestProgress")
         if progress then
