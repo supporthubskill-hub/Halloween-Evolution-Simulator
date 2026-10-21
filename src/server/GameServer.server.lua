@@ -7,6 +7,24 @@ local MAX_LEVEL = 1000
 local InventoryService = require(script.Parent:WaitForChild("InventoryService"))
 local inventories = {}
 local loaded = {}
+-- Only trusted server scripts can request inventory grants.
+local grantEvent = Instance.new("BindableEvent")
+grantEvent.Name = "GrantInventoryItem"
+grantEvent.Parent = script.Parent
+grantEvent.Event:Connect(function(player, itemType, templateId)
+    if not loaded[player] or player:GetAttribute("ProgressReady") ~= true then return end
+    if not InventoryService.TYPES[itemType] or typeof(templateId) ~= "string" then return end
+    if #templateId == 0 or #templateId > 64 then return end
+    local inventory = inventories[player]
+    if not inventory or #inventory >= InventoryService.MAX_ITEMS then return end
+    local item = InventoryService.NewItem(itemType, templateId, 1)
+    table.insert(inventory, item)
+    local notification = ReplicatedStorage:FindFirstChild("ItemObtained")
+    if notification then notification:FireClient(player, item.TemplateId) end
+end)
+local notification = Instance.new("RemoteEvent")
+notification.Name = "ItemObtained"
+notification.Parent = ReplicatedStorage
 local inventoryRequest = Instance.new("RemoteFunction")
 inventoryRequest.Name = "GetInventory"
 inventoryRequest.Parent = ReplicatedStorage
