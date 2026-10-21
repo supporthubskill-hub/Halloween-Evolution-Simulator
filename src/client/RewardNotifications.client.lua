@@ -52,6 +52,8 @@ local names = {
     HalloweenEssence = "Esencia de Halloween",
     MagicCrystal = "Cristal Mágico",
     GhostLantern = "Linterna Fantasmal",
+    SoulDust = "Polvo de Alma",
+    SoulShard = "Fragmento de Alma",
 }
 ReplicatedStorage:WaitForChild("ItemObtained").OnClientEvent:Connect(function(template)
     if typeof(template) == "string" then
