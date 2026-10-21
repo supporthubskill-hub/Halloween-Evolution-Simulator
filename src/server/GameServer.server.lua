@@ -2,10 +2,18 @@
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 local store = DataStoreService:GetDataStore("HalloweenEvolution_PlayerProgress_v1")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MAX_LEVEL = 1000
 local InventoryService = require(script.Parent:WaitForChild("InventoryService"))
 local inventories = {}
 local loaded = {}
+local inventoryRequest = Instance.new("RemoteFunction")
+inventoryRequest.Name = "GetInventory"
+inventoryRequest.Parent = ReplicatedStorage
+inventoryRequest.OnServerInvoke = function(player)
+    if not loaded[player] then return {Ready=false, Items={}} end
+    return {Ready=true, Items=InventoryService.Sanitize(inventories[player])}
+end
 local function clampInteger(value, min, max, fallback)
     if typeof(value) ~= "number" or value ~= value then return fallback end
     return math.clamp(math.floor(value), min, max)
