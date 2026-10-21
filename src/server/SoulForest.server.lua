@@ -14,6 +14,8 @@ local function part(name, size, pos, color, material)
     p.Parent = forest
     return p
 end
+-- Bridge connects the original village boundary to the forest entrance.
+part("ForestBridge", Vector3.new(22, 1, 78), Vector3.new(0, 0, 264), Color3.fromRGB(88, 70, 104), Enum.Material.WoodPlanks)
 part("ForestGround", Vector3.new(280, 2, 280), Vector3.new(0, -1, 420), Color3.fromRGB(26, 52, 55), Enum.Material.Grass)
 part("ForestPath", Vector3.new(18, 0.3, 290), Vector3.new(0, 0.2, 292), Color3.fromRGB(77, 70, 90), Enum.Material.Cobblestone)
 local rng = Random.new(510150)
@@ -26,7 +28,7 @@ for i = 1, 36 do
         crown.Shape = Enum.PartType.Ball
     end
 end
-local gate = part("SoulForestGate", Vector3.new(20, 18, 3), Vector3.new(0, 9, 250), Color3.fromRGB(88, 54, 132), Enum.Material.Neon)
+local gate = part("SoulForestGate", Vector3.new(20, 18, 3), Vector3.new(0, 9, 225), Color3.fromRGB(88, 54, 132), Enum.Material.Neon)
 gate.CanCollide = false
 local prompt = Instance.new("ProximityPrompt")
 prompt.ActionText = "Entrar (Nv. 51)"
