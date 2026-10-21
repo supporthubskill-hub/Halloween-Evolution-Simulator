@@ -133,6 +133,12 @@ local function loadPlayer(player)
             player:SetAttribute("AllyXP", clampInteger(data.AllyXP, 0, 2000000000, 0))
         end
     end
+    player:SetAttribute("Candy", typeof(data) == "table" and clampInteger(data.Candy, 0, 2000000000, 0) or 0)
+    for _, id in ipairs({"WELCOME", "PUMPKINS", "CEMETERY"}) do
+        local quests = typeof(data) == "table" and data.Quests or nil
+        local saved = typeof(quests) == "table" and quests[id] or nil
+        player:SetAttribute("Quest_" .. id, clampInteger(saved, 0, id == "PUMPKINS" and 5 or 1, 0))
+    end
     loaded[player] = true
     local equippedPet
     for _, entry in ipairs(inventories[player]) do
@@ -165,6 +171,12 @@ local function savePlayer(player)
         AllyLevel = player:GetAttribute("AllyLevel") or 1,
         AllyXP = player:GetAttribute("AllyXP") or 0,
         Inventory = InventoryService.Sanitize(inventories[player]),
+        Candy = player:GetAttribute("Candy") or 0,
+        Quests = {
+            WELCOME = player:GetAttribute("Quest_WELCOME") or 0,
+            PUMPKINS = player:GetAttribute("Quest_PUMPKINS") or 0,
+            CEMETERY = player:GetAttribute("Quest_CEMETERY") or 0,
+        },
     }
     local ok, err = pcall(function()
         store:UpdateAsync("player_" .. player.UserId, function()
