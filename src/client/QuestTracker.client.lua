@@ -9,13 +9,13 @@ gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 local frame = Instance.new("Frame")
 frame.Position = UDim2.new(0, 12, 0, 80)
-frame.Size = UDim2.new(0.46, 0, 0, 145)
+frame.Size = UDim2.new(0.46, 0, 0, 196)
 frame.BackgroundColor3 = Color3.fromRGB(42, 27, 58)
 frame.BackgroundTransparency = 0.14
 frame.Parent = gui
 local limit = Instance.new("UISizeConstraint")
-limit.MaxSize = Vector2.new(260, 145)
-limit.MinSize = Vector2.new(155, 145)
+limit.MaxSize = Vector2.new(260, 196)
+limit.MinSize = Vector2.new(155, 196)
 limit.Parent = frame
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
@@ -48,7 +48,7 @@ local function refresh()
     table.insert(lines, "🍬 Dulces: " .. (player:GetAttribute("Candy") or 0))
     label.Text = table.concat(lines, "\n")
 end
-for _, name in ipairs({"ProgressReady", "Quest_WELCOME", "Quest_PUMPKINS", "Quest_CEMETERY", "Candy"}) do
+for _, name in ipairs({"ProgressReady", "Quest_WELCOME", "Quest_PUMPKINS", "Quest_CEMETERY", "Quest_SOUL_ENTRY", "Quest_SOUL_HUNTER", "Quest_SOUL_BOSS", "Candy"}) do
     player:GetAttributeChangedSignal(name):Connect(refresh)
 end
 task.spawn(function()
