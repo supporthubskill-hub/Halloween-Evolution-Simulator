@@ -32,6 +32,34 @@ inventoryRequest.OnServerInvoke = function(player)
     if not loaded[player] then return {Ready=false, Items={}} end
     return {Ready=true, Items=InventoryService.Sanitize(inventories[player])}
 end
+-- Equipment changes are validated against the server-owned inventory.
+local equipRequest = Instance.new("RemoteFunction")
+equipRequest.Name = "EquipPet"
+equipRequest.Parent = ReplicatedStorage
+equipRequest.OnServerInvoke = function(player, itemId)
+    if not loaded[player] or player:GetAttribute("ProgressReady") ~= true then
+        return {Success=false, Message="Inventario no disponible"}
+    end
+    if typeof(itemId) ~= "string" or #itemId > 100 then
+        return {Success=false, Message="Objeto inválido"}
+    end
+    local inventory = inventories[player]
+    local item = InventoryService.Find(inventory, itemId)
+    if not item or item.Type ~= "Pet" then
+        return {Success=false, Message="Mascota no encontrada"}
+    end
+    if item.Locked then
+        return {Success=false, Message="Mascota bloqueada"}
+    end
+    local shouldEquip = not item.Equipped
+    for _, entry in ipairs(inventory) do
+        if entry.Type == "Pet" then entry.Equipped = false end
+    end
+    item.Equipped = shouldEquip
+    player:SetAttribute("EquippedPetId", shouldEquip and item.Id or nil)
+    player:SetAttribute("EquippedPetTemplate", shouldEquip and item.TemplateId or nil)
+    return {Success=true, Items=InventoryService.Sanitize(inventory)}
+end
 local function clampInteger(value, min, max, fallback)
     if typeof(value) ~= "number" or value ~= value then return fallback end
     return math.clamp(math.floor(value), min, max)
@@ -69,6 +97,18 @@ local function loadPlayer(player)
         end
     end
     loaded[player] = true
+    local equippedPet
+    for _, entry in ipairs(inventories[player]) do
+        if entry.Type == "Pet" and entry.Equipped and not equippedPet then
+            equippedPet = entry
+        elseif entry.Type == "Pet" then
+            entry.Equipped = false
+        end
+    end
+    if equippedPet then
+        player:SetAttribute("EquippedPetId", equippedPet.Id)
+        player:SetAttribute("EquippedPetTemplate", equippedPet.TemplateId)
+    end
     player:SetAttribute("ProgressReady", true)
 end
 local function savePlayer(player)
