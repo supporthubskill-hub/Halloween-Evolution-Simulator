@@ -39,7 +39,9 @@ prompt.Triggered:Connect(function(player)
     local level = stats and stats:FindFirstChild("Level")
     local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     if not level or level.Value < 51 or not root then return end
-    root.CFrame = CFrame.new(0, 5, 294)
+    root.CFrame = CFrame.new(0, 5, 310)
+    local progress = script.Parent:FindFirstChild("QuestProgress")
+    if progress then progress:Fire(player, "SOUL_ENTRY", 1) end
 end)
 local returnGate = part("ReturnGate", Vector3.new(15, 14, 3), Vector3.new(0, 7, 285), Color3.fromRGB(96, 213, 179), Enum.Material.Neon)
 returnGate.CanCollide = false
