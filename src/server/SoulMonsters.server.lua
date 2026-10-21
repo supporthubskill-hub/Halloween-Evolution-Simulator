@@ -36,6 +36,28 @@ local function spawn(def)
     hum.MaxHealth = def.hp
     hum.Health = def.hp
     hum.Parent = model
+    if def.boss then
+        local gui = Instance.new("BillboardGui")
+        gui.Name = "BossHealth"
+        gui.Size = UDim2.fromOffset(220, 50)
+        gui.StudsOffset = Vector3.new(0, 8, 0)
+        gui.AlwaysOnTop = true
+        gui.MaxDistance = 90
+        gui.Parent = root
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.fromScale(1, 1)
+        label.BackgroundColor3 = Color3.fromRGB(42, 20, 61)
+        label.TextColor3 = Color3.fromRGB(255, 216, 145)
+        label.TextScaled = true
+        label.TextWrapped = true
+        label.Font = Enum.Font.GothamBold
+        label.Parent = gui
+        local function updateHealth()
+            label.Text = "Guardian de las Almas: " .. math.ceil(hum.Health) .. "/" .. hum.MaxHealth .. " HP"
+        end
+        hum.HealthChanged:Connect(updateHealth)
+        updateHealth()
+    end
     local state = {damage=def.damage,root=root,hum=hum,origin=def.pos,attacker=nil,angerUntil=0,lastHealth=def.hp,lastHit=0}
     states[model] = state
     hum.HealthChanged:Connect(function(health)
