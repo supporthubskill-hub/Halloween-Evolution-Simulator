@@ -12,6 +12,7 @@ attack.Parent = ReplicatedStorage
 local COOLDOWN, RANGE, DAMAGE, SAFE_RADIUS = 0.65, 13, 15, 50
 local lastAttack = {}
 local lastDamager = {}
+local grantItem = script.Parent:WaitForChild("GrantInventoryItem")
 
 local function award(player, monster)
     if not player or not player.Parent then return end
@@ -22,6 +23,8 @@ local function award(player, monster)
         local newLevel, newXP = LevelService.AddXP(level.Value, xp.Value, 35)
         level.Value, xp.Value = newLevel, newXP
     end
+    -- One server-generated material reward for every monster defeat.
+    grantItem:Fire(player, "Material", "HalloweenEssence")
     local allyName = player:GetAttribute("EquippedAlly")
     if typeof(allyName) == "string" then
         local allyLevel = player:GetAttribute("AllyLevel") or 1
