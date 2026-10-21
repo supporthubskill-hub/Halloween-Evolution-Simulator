@@ -13,6 +13,7 @@ local COOLDOWN, RANGE, DAMAGE, SAFE_RADIUS = 0.65, 13, 15, 50
 local lastAttack = {}
 local lastDamager = {}
 local grantItem = script.Parent:WaitForChild("GrantInventoryItem")
+local awardPetXP = script.Parent:WaitForChild("AwardPetXP")
 
 local function award(player, monster)
     if not player or not player.Parent then return end
@@ -25,6 +26,7 @@ local function award(player, monster)
     end
     -- One server-generated material reward for every monster defeat.
     grantItem:Fire(player, "Material", "HalloweenEssence")
+    awardPetXP:Fire(player, 25)
     local allyName = player:GetAttribute("EquippedAlly")
     if typeof(allyName) == "string" then
         local allyLevel = player:GetAttribute("AllyLevel") or 1
