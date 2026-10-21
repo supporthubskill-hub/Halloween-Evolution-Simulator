@@ -44,6 +44,7 @@ petXPEvent.Event:Connect(function(player, amount)
     if not item or item.Type ~= "Pet" or not item.Equipped then return end
     item.Level, item.XP = PetConfig.AddXP(item.Level, item.XP or 0, amount)
     player:SetAttribute("EquippedPetLevel", item.Level)
+    player:SetAttribute("EquippedPetXP", item.XP)
     player:SetAttribute("EquippedPetStage", PetConfig.GetStage(item.Level))
 end)
 -- Equipment changes are validated against the server-owned inventory.
@@ -73,6 +74,7 @@ equipRequest.OnServerInvoke = function(player, itemId)
     player:SetAttribute("EquippedPetId", shouldEquip and item.Id or nil)
     player:SetAttribute("EquippedPetTemplate", shouldEquip and item.TemplateId or nil)
     player:SetAttribute("EquippedPetLevel", shouldEquip and item.Level or nil)
+    player:SetAttribute("EquippedPetXP", shouldEquip and (item.XP or 0) or nil)
     player:SetAttribute("EquippedPetStage", shouldEquip and PetConfig.GetStage(item.Level) or nil)
     return {Success=true, Items=InventoryService.Sanitize(inventory)}
 end
@@ -144,6 +146,7 @@ local function loadPlayer(player)
         player:SetAttribute("EquippedPetId", equippedPet.Id)
         player:SetAttribute("EquippedPetTemplate", equippedPet.TemplateId)
         player:SetAttribute("EquippedPetLevel", equippedPet.Level)
+        player:SetAttribute("EquippedPetXP", equippedPet.XP or 0)
         player:SetAttribute("EquippedPetStage", PetConfig.GetStage(equippedPet.Level))
     end
     player:SetAttribute("ProgressReady", true)
