@@ -29,6 +29,9 @@ local function equip(player, allyName)
     local character = player.Character
     local root = character and character:FindFirstChild("HumanoidRootPart")
     if not root then return end
+    local previousName = player:GetAttribute("EquippedAlly") or player:GetAttribute("SavedAllyName")
+    local previousLevel = player:GetAttribute("AllyLevel") or 1
+    local previousXP = player:GetAttribute("AllyXP") or 0
     removeCompanion(player)
     local template = npcs:FindFirstChild(allyName)
     if not template then return end
@@ -42,7 +45,9 @@ local function equip(player, allyName)
     model:PivotTo(root.CFrame * CFrame.new(4, 0, 4))
     equipped[player] = {Name=allyName, Model=model, Level=1, XP=0}
     player:SetAttribute("EquippedAlly", allyName)
-    player:SetAttribute("AllyLevel", 1)
+    player:SetAttribute("SavedAllyName", allyName)
+    player:SetAttribute("AllyLevel", previousName == allyName and previousLevel or 1)
+    player:SetAttribute("AllyXP", previousName == allyName and previousXP or 0)
 end
 
 -- Add a separate recruitment prompt to each village NPC.
@@ -92,5 +97,33 @@ Players.PlayerAdded:Connect(function(player)
     player.CharacterRemoving:Connect(function()
         removeCompanion(player)
         player:SetAttribute("EquippedAlly", nil)
+        -- SavedAllyName and progression persist through respawns.
     end)
 end)
+
+-- Restore the saved ally once progress and character are ready.
+local function setupRestore(player)
+    task.spawn(function()
+        local deadline = os.clock() + 25
+        while player.Parent and player:GetAttribute("ProgressReady") == nil and os.clock() < deadline do
+            task.wait(0.2)
+        end
+        if player:GetAttribute("ProgressReady") ~= true then return end
+        local saved = player:GetAttribute("SavedAllyName")
+        if not validNames[saved] then return end
+        local character = player.Character or player.CharacterAdded:Wait()
+        character:WaitForChild("HumanoidRootPart", 10)
+        if player.Parent and player:GetAttribute("EquippedAlly") == nil then
+            equip(player, saved)
+        end
+    end)
+    player.CharacterAdded:Connect(function()
+        task.wait(1)
+        if player.Parent and player:GetAttribute("ProgressReady") == true
+            and not equipped[player] and validNames[player:GetAttribute("SavedAllyName")] then
+            equip(player, player:GetAttribute("SavedAllyName"))
+        end
+    end)
+end
+Players.PlayerAdded:Connect(setupRestore)
+for _, player in Players:GetPlayers() do setupRestore(player) end
