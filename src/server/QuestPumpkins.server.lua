@@ -34,5 +34,6 @@ for index, position in ipairs(locations) do
         if not level or level.Value < 3 or (player:GetAttribute("Quest_PUMPKINS") or 0) >= 5 then return end
         collected[player.UserId] = true
         questProgress:Fire(player, "PUMPKINS", 1)
+        task.delay(30, function() collected[player.UserId] = nil end)
     end)
 end
