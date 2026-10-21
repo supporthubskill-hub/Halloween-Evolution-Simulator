@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local request = ReplicatedStorage:WaitForChild("GetInventory")
 local equipPet = ReplicatedStorage:WaitForChild("EquipPet")
-local equipRequest = ReplicatedStorage:WaitForChild("EquipPet")
 local gui = Instance.new("ScreenGui")
 gui.Name = "InventoryGui"
 gui.ResetOnSpawn = false
@@ -103,16 +102,7 @@ local function render()
                     end
                 end)
             end
-            if item.Type == "Pet" then
-                entry.Text = entry.Text .. (item.Equipped and "  | QUITAR" or "  | EQUIPAR")
-                entry.Activated:Connect(function()
-                    local ok, result = pcall(function() return equipRequest:InvokeServer(item.Id) end)
-                    if ok and typeof(result) == "table" and result.Success then
-                        items = result.Items
-                        render()
-                    end
-                end)
-            end
+
         end
     end
     if shown == 0 then
