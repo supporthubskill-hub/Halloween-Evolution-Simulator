@@ -58,6 +58,9 @@ ReplicatedStorage:WaitForChild("ItemObtained").OnClientEvent:Connect(function(te
         show("🎁 Obtuviste: " .. (names[template] or template))
     end
 end)
+ReplicatedStorage:WaitForChild("QuestToast").OnClientEvent:Connect(function(message)
+    if typeof(message) == "string" then show(message) end
+end)
 local previousStage = nil
 player:GetAttributeChangedSignal("EquippedPetStage"):Connect(function()
     local stage = player:GetAttribute("EquippedPetStage")
