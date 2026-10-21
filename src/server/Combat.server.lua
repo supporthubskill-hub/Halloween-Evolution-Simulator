@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local world = workspace:WaitForChild("PuebloMaldito")
 local monsters = world:WaitForChild("NeutralMonsters")
 local companions = world:WaitForChild("Companions")
+local soulMonsters = world:WaitForChild("BosqueDeLasAlmas"):WaitForChild("SoulMonsters")
 local LevelService = require(script.Parent:WaitForChild("LevelService"))
 local AllyConfig = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AllyConfig"))
 local attack = ReplicatedStorage:FindFirstChild("BasicAttack") or Instance.new("RemoteEvent")
@@ -23,11 +24,15 @@ local function award(player, monster)
     local level = stats and stats:FindFirstChild("Level")
     local xp = player:FindFirstChild("XP")
     if level and xp then
-        local newLevel, newXP = LevelService.AddXP(level.Value, xp.Value, 35)
+        local reward = monster:GetAttribute("XPReward") or 35
+        local newLevel, newXP = LevelService.AddXP(level.Value, xp.Value, reward)
         level.Value, xp.Value = newLevel, newXP
     end
     -- One server-generated material reward for every monster defeat.
     grantItem:Fire(player, "Material", "HalloweenEssence")
+    if monster.Name == "Guardián de las Almas" then
+        grantItem:Fire(player, "Material", "SoulShard")
+    end
     awardPetXP:Fire(player, 25)
     local allyName = player:GetAttribute("EquippedAlly")
     if typeof(allyName) == "string" then
@@ -69,7 +74,13 @@ attack.OnServerEvent:Connect(function(player)
     if not root or not humanoid or humanoid.Health <= 0 then return end
     if Vector3.new(root.Position.X, 0, root.Position.Z).Magnitude < SAFE_RADIUS then return end
     local nearest, nearestDistance = nil, RANGE
-    for _, monster in monsters:GetChildren() do
+    local pools = {monsters, soulMonsters}
+    for _, pool in ipairs(pools) do
+    for _, monster in pool:GetChildren() do
+        local minimum = monster:GetAttribute("MinimumLevel") or 1
+        local stats = player:FindFirstChild("leaderstats")
+        local level = stats and stats:FindFirstChild("Level")
+        if not level or level.Value < minimum then continue end
         local targetRoot = monster:FindFirstChild("HumanoidRootPart")
         local targetHumanoid = monster:FindFirstChildOfClass("Humanoid")
         if targetRoot and targetHumanoid and targetHumanoid.Health > 0 then
@@ -78,6 +89,7 @@ attack.OnServerEvent:Connect(function(player)
                 nearest, nearestDistance = monster, distance
             end
         end
+    end
     end
     if not nearest then return end
     damageMonster(player, nearest, DAMAGE)
